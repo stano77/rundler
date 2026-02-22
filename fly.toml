@@ -1,23 +1,144 @@
-# fly.toml app configuration file generated for rundler on 2026-02-22T19:06:42Z
+# =============================================================================
+# Rundler (Alchemy ERC-4337 Bundler) -- Fly.io Configuration
+# Network: Base Mainnet (chainId 8453)
+# =============================================================================
 #
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+# SECRETS (set via `fly secrets set`, NEVER in this file):
 #
+#   fly secrets set \
+#     RUNDLER_SIGNER_PRIVATE_KEYS="0xYOUR_PRIVATE_KEY" \
+#     RUNDLER_NODE_HTTP="https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx" \
+#     --app rundler-base-mainnet
+#
+# ENV VAR NAMING CONVENTION:
+#   Rundler strips the RUNDLER_ prefix, then maps underscores to CLI flags:
+#     RUNDLER_NODE_HTTP          -->  --node_http
+#     RUNDLER_BUILDER_MAX_BUNDLE_SIZE  -->  --builder.max_bundle_size
+#     RUNDLER_RPC_PORT           -->  --rpc.port
+#     RUNDLER_POOL_SAME_SENDER_MEMPOOL_COUNT  -->  --pool.same_sender_mempool_count
+#
+# =============================================================================
 
-app = 'rundler'
-primary_region = 'fra'
+app = "rundler-base-mainnet"
+primary_region = "ewr"
 
 [build]
+  image = "registry.fly.io/rundler:deployment-81bc7e714d25239f9e3902a277e09db5"
 
+[processes]
+  app = "/usr/local/bin/rundler node"
+
+# =============================================================================
+# Environment variables (non-secret)
+# =============================================================================
+[env]
+  # ---- Network ----
+  # Hardcoded chain spec for Base Mainnet
+  RUNDLER_NETWORK = "base"
+
+  # ---- Entry Points ----
+  # Only v0.7 -- that's what our app uses
+  RUNDLER_ENABLED_ENTRY_POINTS = "v0.7"
+  RUNDLER_NUM_BUILDERS_V0_7 = "1"
+
+  # ---- RPC Server ----
+  RUNDLER_RPC_PORT = "3000"
+  RUNDLER_RPC_HOST = "0.0.0.0"
+  RUNDLER_RPC_API = "eth,rundler"
+  RUNDLER_RPC_TIMEOUT_SECONDS = "20"
+  RUNDLER_RPC_MAX_CONNECTIONS = "100"
+
+  # ---- Pool (Mempool) ----
+  # Max unstaked UserOps per sender in mempool
+  RUNDLER_POOL_SAME_SENDER_MEMPOOL_COUNT = "4"
+  # Poll Base L2 for new blocks every 500ms (Base has 2s block time)
+  RUNDLER_POOL_CHAIN_POLL_INTERVAL_MILLIS = "500"
+  # Track paymaster balances to reject UserOps that would overdraw
+  RUNDLER_POOL_PAYMASTER_TRACKING_ENABLED = "true"
+  # Track entity reputation per ERC-4337 spec
+  RUNDLER_POOL_REPUTATION_TRACKING_ENABLED = "true"
+
+  # ---- Builder ----
+  # Max UserOps per bundle. 1 = no batching (optimal for single-tenant L2)
+  RUNDLER_BUILDER_MAX_BUNDLE_SIZE = "1"
+  # Submit raw transactions directly (no Flashbots/MEV on Base L2)
+  RUNDLER_BUILDER_SENDER = "raw"
+  # Blocks to wait before re-submitting with higher gas
+  RUNDLER_BUILDER_MAX_BLOCKS_TO_WAIT_FOR_MINE = "3"
+  # Fee bump % when retrying a stuck bundle
+  RUNDLER_BUILDER_REPLACEMENT_FEE_PERCENT_INCREASE = "15"
+
+  # ---- Gas / Priority Fee ----
+  # Use base_fee_percent mode: priority fee = base_fee * (value / 100)
+  # Base L2 has very low base fees, so 0% priority fee is usually sufficient
+  # for near-instant inclusion (centralized sequencer, no MEV competition)
+  RUNDLER_PRIORITY_FEE_MODE_KIND = "base_fee_percent"
+  RUNDLER_PRIORITY_FEE_MODE_VALUE = "0"
+  # Accept UserOps with fees at 50% of current network fees (generous for mempool entry)
+  RUNDLER_BASE_FEE_ACCEPT_PERCENT = "50"
+  # Bundle tx base fee overhead: 27% buffer over network pending (default)
+  RUNDLER_BUNDLE_BASE_FEE_OVERHEAD_PERCENT = "27"
+
+  # ---- Verification / Estimation ----
+  RUNDLER_MAX_VERIFICATION_GAS = "5000000"
+
+  # ---- DA Gas (Base L2 specific) ----
+  # Enable DA gas tracking for L1 data posting cost awareness
+  RUNDLER_DA_GAS_TRACKING_ENABLED = "true"
+
+  # ---- Provider ----
+  # Timeout for Alchemy RPC calls
+  RUNDLER_PROVIDER_CLIENT_TIMEOUT_SECONDS = "10"
+
+  # ---- Logging ----
+  RUST_LOG = "info,rundler=info"
+  RUNDLER_LOG_JSON = "true"
+
+  # ---- Metrics ----
+  RUNDLER_METRICS_PORT = "8080"
+
+# =============================================================================
+# HTTP service -- exposes the JSON-RPC endpoint
+# =============================================================================
 [http_service]
-  internal_port = 8080
+  internal_port = 3000
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = "off"
   auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+  min_machines_running = 1
+  processes = ["app"]
 
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 100
+    soft_limit = 80
+
+# =============================================================================
+# Health check -- probe eth_supportedEntryPoints
+# =============================================================================
+[[http_service.checks]]
+  grace_period = "30s"
+  interval = "15s"
+  method = "POST"
+  timeout = "5s"
+  path = "/rpc"
+  headers = { "Content-Type" = "application/json" }
+  body = '{"jsonrpc":"2.0","id":1,"method":"eth_supportedEntryPoints","params":[]}'
+
+  [http_service.checks.status]
+    range = [200, 299]
+
+# =============================================================================
+# Metrics service -- Prometheus endpoint for monitoring (optional)
+# =============================================================================
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+
+# =============================================================================
+# Machine sizing
+# =============================================================================
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
-  memory_mb = 1024
+  size = "shared-cpu-2x"
+  memory = "1024mb"
+  cpus = 2
