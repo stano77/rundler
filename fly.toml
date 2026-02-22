@@ -1,9 +1,14 @@
 app = "rundler"
 primary_region = "ewr"
 
-# DEBUG: Use shell wrapper to guarantee visible output
-[processes]
-  app = "/bin/sh -c 'echo RUNDLER_DEBUG_START && ls -la /usr/local/bin/rundler && /usr/local/bin/rundler --help 2>&1 && echo RUNDLER_DEBUG_END || echo RUNDLER_FAILED_WITH_CODE=$?'"
+# Secrets (set via: fly secrets set NODE_HTTP="..." SIGNER_PRIVATE_KEYS="0x..." --app rundler)
+
+[env]
+  RUST_LOG = "rundler=info,warn"
+  NETWORK = "base"
+  RPC_HOST = "0.0.0.0"
+  RPC_PORT = "3000"
+  ENABLED_ENTRY_POINTS = "v0.7"
 
 [http_service]
   internal_port = 3000
@@ -11,7 +16,6 @@ primary_region = "ewr"
   auto_stop_machines = "off"
   auto_start_machines = true
   min_machines_running = 1
-  processes = ["app"]
 
 [[vm]]
   size = "shared-cpu-2x"
