@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1.4
 
+# syntax=docker/dockerfile:1.4
+FROM --platform=linux/arm64 rust:1.92.0-bookworm AS chef-builder
+# ... rest of your original Dockerfile
+
 FROM rust:1.92.0-bookworm AS chef-builder
 
 RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends \
