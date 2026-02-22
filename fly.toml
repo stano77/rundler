@@ -6,8 +6,12 @@ primary_region = "ewr"
 #   fly secrets set RUNDLER_SIGNER_PRIVATE_KEYS="0xYOUR_BUILDER_EOA_KEY" --app rundler
 
 [env]
+  RUNDLER_NETWORK = "base"
   RUNDLER_RPC_HOST = "0.0.0.0"
   RUNDLER_RPC_PORT = "3000"
+  RUNDLER_ENABLED_ENTRY_POINTS = "v0.7"
+  RUNDLER_DA_GAS_TRACKING_ENABLED = "true"
+  RUNDLER_POOL_CHAIN_POLL_INTERVAL_MILLIS = "500"
 
 [http_service]
   internal_port = 3000
