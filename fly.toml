@@ -1,11 +1,9 @@
 app = "rundler"
 primary_region = "ewr"
 
-# DEBUG: Override entrypoint to capture all output from Rundler
-# Once working, replace [processes] with the real command
-
+# DEBUG: Use shell wrapper to guarantee visible output
 [processes]
-  app = "--help"
+  app = "/bin/sh -c 'echo RUNDLER_DEBUG_START && ls -la /usr/local/bin/rundler && /usr/local/bin/rundler --help 2>&1 && echo RUNDLER_DEBUG_END || echo RUNDLER_FAILED_WITH_CODE=$?'"
 
 [http_service]
   internal_port = 3000
