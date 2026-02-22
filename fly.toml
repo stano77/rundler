@@ -1,21 +1,15 @@
 app = "rundler"
 primary_region = "ewr"
 
-# Secrets required (set BEFORE deploying):
-#   fly secrets set \
-#     NODE_HTTP="https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx" \
-#     SIGNER_PRIVATE_KEYS="0xYOUR_PRIVATE_KEY" \
-#     --app rundler
+# DEBUG: All values in plaintext to isolate Fly secrets issue.
+# Move NODE_HTTP and SIGNER_PRIVATE_KEYS to `fly secrets` once Rundler starts.
 
 [env]
-  RUST_LOG = "info"
+  RUST_LOG = "debug"
   NETWORK = "base"
+  NODE_HTTP = "https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx"
   RPC_HOST = "0.0.0.0"
   RPC_PORT = "3000"
-  ENABLED_ENTRY_POINTS = "v0.7"
-  DA_GAS_TRACKING_ENABLED = "true"
-  POOL_CHAIN_POLL_INTERVAL_MILLIS = "500"
-  BUILDER_MAX_BUNDLE_SIZE = "4"
 
 [http_service]
   internal_port = 3000
