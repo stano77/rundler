@@ -1,18 +1,11 @@
 app = "rundler"
 primary_region = "ewr"
 
-# The Dockerfile ENTRYPOINT is ["/usr/local/bin/rundler"] with NO default CMD.
-# We must provide "node" + all flags via [processes].
-# Secrets must be passed as env vars (Fly injects them into the container env).
-#
-# Required secrets:
-#   fly secrets set \
-#     NODE_HTTP="https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx" \
-#     SIGNER_PRIVATE_KEYS="0xYOUR_BUILDER_EOA_KEY" \
-#     --app rundler
+# DEBUG: Override entrypoint to capture all output from Rundler
+# Once working, replace [processes] with the real command
 
 [processes]
-  app = "node --network base --entry_points v0.7 --rpc.host 0.0.0.0 --rpc.port 3000 --pool.chain_poll_interval_millis 500 --priority_fee_mode_kind base_fee_percent --priority_fee_mode_value 0"
+  app = "--help"
 
 [http_service]
   internal_port = 3000
