@@ -1,17 +1,16 @@
-app = "rundler-base-mainnet"
+app = "rundler"
 primary_region = "ewr"
 
 [processes]
   app = "/usr/local/bin/rundler node"
 
-# Secrets (fly secrets set):
-#   RUNDLER_SIGNER_PRIVATE_KEYS, RUNDLER_NODE_HTTP
+# Required secrets -- set BEFORE deploying:
+#   fly secrets set RUNDLER_NODE_HTTP="https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx" --app rundler
+#   fly secrets set RUNDLER_SIGNER_PRIVATE_KEYS="0xYOUR_BUILDER_EOA_KEY" --app rundler
 
 [env]
-  RUNDLER_NETWORK="base"
-RUNDLER_RPC_HOST="0.0.0.0"
-RUNDLER_RPC_PORT="3000"
-RUNDLER_RPC_URL="https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx"
+  RUNDLER_RPC_HOST = "0.0.0.0"
+  RUNDLER_RPC_PORT = "3000"
 
 [http_service]
   internal_port = 3000
@@ -24,4 +23,3 @@ RUNDLER_RPC_URL="https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx"
 [[vm]]
   size = "shared-cpu-2x"
   memory = "1024mb"
-  cpus = 2
