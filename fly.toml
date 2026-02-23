@@ -1,11 +1,10 @@
 app = "rundler"
 primary_region = "ewr"
 
-# Pass EVERYTHING as CLI flags -- env vars are not reaching clap in this image.
-# [processes] replaces the image's CMD ["node"], so "node --flag ..." becomes the new CMD.
-# ENTRYPOINT ("/usr/local/bin/rundler") + CMD ("node --network base ...") = full command.
+# Image ENTRYPOINT is ["/usr/local/bin/rundler", "node"] -- "node" is already baked in.
+# [processes] replaces CMD, so we pass ONLY flags here (not "node" again).
 [processes]
-  app = "node --network base --node_http https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx --rpc.host 0.0.0.0 --rpc.port 3000"
+  app = "--network base --node_http https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx --rpc.host 0.0.0.0 --rpc.port 3000"
 
 [env]
   RUST_LOG = "debug"
