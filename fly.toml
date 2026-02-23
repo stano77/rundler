@@ -1,15 +1,14 @@
 app = "rundler"
 primary_region = "ewr"
 
-# Your image already has CMD ["node"] -- do NOT add [processes]
-# Move NODE_HTTP and SIGNER_PRIVATE_KEYS to `fly secrets` once Rundler starts
+# Pass EVERYTHING as CLI flags -- env vars are not reaching clap in this image.
+# [processes] replaces the image's CMD ["node"], so "node --flag ..." becomes the new CMD.
+# ENTRYPOINT ("/usr/local/bin/rundler") + CMD ("node --network base ...") = full command.
+[processes]
+  app = "node --network base --node_http https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx --rpc.host 0.0.0.0 --rpc.port 3000"
 
 [env]
   RUST_LOG = "debug"
-  NETWORK = "base"
-  NODE_HTTP = "https://base-mainnet.g.alchemy.com/v2/r1AhqmIsNCmLSntXfSuNx"
-  RPC_HOST = "0.0.0.0"
-  RPC_PORT = "3000"
 
 [http_service]
   internal_port = 3000
@@ -17,6 +16,7 @@ primary_region = "ewr"
   auto_stop_machines = "off"
   auto_start_machines = true
   min_machines_running = 1
+  processes = ["app"]
 
 [[vm]]
   size = "shared-cpu-2x"
